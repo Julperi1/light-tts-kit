@@ -187,3 +187,8 @@ See [inputs/README.md](inputs/README.md) for more.
 - **Running out of GPU memory**: cards with 2-4 GB can run out. `generate.py` then
   continues on the CPU. A smaller `--max-chars` (for example 150) uses less memory.
 - **"No environment found"**: run `setup.py` first.
+
+## License
+
+[MIT](LICENSE). This covers the scripts in this repository. Chatterbox TTS and the
+other packages that setup installs have their own licenses.
