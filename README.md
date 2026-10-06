@@ -11,32 +11,108 @@ NVIDIA cards (GTX 900 / 10-series) as well as newer ones, and can speak in your 
 - Python 3.11 (3.10 also works).
 - About 8 GB of free disk space.
 
-## Setup
+## Installation
 
-Run once:
+Setup is the same everywhere once Python 3.11 and the NVIDIA driver are in place.
+Getting those two is the part that differs between systems.
+
+### Linux
+
+**1. Check the NVIDIA driver**
 
 ```
-python3.11 setup.py        (Linux/macOS)
-py -3.11 setup.py          (Windows)
+nvidia-smi
 ```
 
-It lists what it is about to do and asks before doing it. It then creates a private
-environment in `.venv`, installs Chatterbox, installs the PyTorch build that matches
-your GPU, checks the GPU, and downloads the model weights (~3 GB).
+If this prints your card and a driver version of 525 or newer, you are done with this
+step. If the command is missing, install the proprietary NVIDIA driver the way your
+distribution documents it (for example `sudo ubuntu-drivers install` on Ubuntu, the
+RPM Fusion `akmod-nvidia` package on Fedora, the `nvidia` packages on Arch), then reboot.
+
+GTX 900 and 10-series cards are no longer supported by the newest driver branches.
+If your distribution has moved on, install its legacy 580-series driver package.
+
+**2. Install Python 3.11 and git**
+
+This is where distributions differ, because most ship only one Python version:
+
+| Distribution | Commands |
+|---|---|
+| Debian 12 | `sudo apt install git python3 python3-venv` (its `python3` is 3.11, so use `python3` below) |
+| Ubuntu 22.04 | `sudo apt install git python3.11 python3.11-venv` |
+| Ubuntu 24.04 and newer, Debian 13 and newer | Not in the standard repositories. Use the uv method below. |
+| Fedora | `sudo dnf install git python3.11` |
+| Arch, CachyOS, Manjaro | Not in the official repositories. `sudo pacman -S git uv`, then the uv method below. |
+| Anything else | Use the uv method below. |
+
+**The uv method** works on every distribution and does not touch the system Python.
+Install [uv](https://docs.astral.sh/uv/) from your package manager if it has it, or with:
+
+```
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Then:
+
+```
+uv python install 3.11
+```
+
+This gives you a `python3.11` command. If the shell cannot find it, add `~/.local/bin`
+to your PATH and open a new terminal.
+
+**3. Get the kit and run setup**
+
+```
+git clone https://github.com/Julperi1/light-tts-kit.git
+cd light-tts-kit
+python3.11 setup.py
+```
+
+### Windows (PowerShell)
+
+**1. Check the NVIDIA driver**
+
+```
+nvidia-smi
+```
+
+If this prints your card and a driver version of 528 or newer, you are done with this
+step. Otherwise install or update the driver from the NVIDIA website or the NVIDIA app.
+
+**2. Install Python 3.11 and git**
+
+```
+winget install Python.Python.3.11
+winget install Git.Git
+```
+
+Close and reopen PowerShell afterwards so the new commands are found.
+
+**3. Get the kit and run setup**
+
+```
+git clone https://github.com/Julperi1/light-tts-kit.git
+cd light-tts-kit
+py -3.11 setup.py
+```
+
+`py` is the Python launcher installed with Python on Windows. Use it in place of
+`python` in the commands further down, for example `py generate.py --path=test.txt`.
+If typing `python` opens the Microsoft Store, that is a Windows placeholder and not a
+real Python.
+
+### What setup does
+
+Setup runs once. It lists what it is about to do and asks before doing it. It then
+creates a private environment in `.venv`, installs Chatterbox, installs the PyTorch
+build that matches your GPU, checks the GPU, and downloads the model weights (~3 GB).
 
 | Option | Effect |
 |---|---|
 | `--yes`, `-y` | Skip the confirmation question |
 | `--skip-download` | Don't download the model now (it downloads on first use) |
 | `--force` | Try with a Python version other than 3.10 / 3.11 |
-
-If setup says Python 3.11 is needed, install it and run setup again with it. One way
-that works on any Linux distribution, without touching the system Python:
-
-```
-uv python install 3.11
-python3.11 setup.py
-```
 
 ## Generate speech
 
@@ -92,7 +168,7 @@ See [inputs/README.md](inputs/README.md) for more.
 
 ## Troubleshooting
 
-- **"Python 3.11 is needed"**: install Python 3.11 and run setup with it (see Setup).
+- **"Python 3.11 is needed"**: install Python 3.11 and run setup with it (see Installation).
 - **"GPU isn't usable from PyTorch"**: update the NVIDIA driver, then run setup again.
 - **Running out of GPU memory**: cards with 2-4 GB can run out. `generate.py` then
   continues on the CPU. A smaller `--max-chars` (for example 150) uses less memory.
