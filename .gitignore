@@ -1,5 +1,6 @@
 .venv/
-output/
+output/*
+!output/README.md
 __pycache__/
 
 # voice recordings stay local; only the guide is tracked
