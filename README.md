@@ -1,15 +1,29 @@
 # light-tts-kit
 
-Turn a text file into speech on your own computer with
-[Chatterbox TTS](https://github.com/resemble-ai/chatterbox). Runs locally on older
-NVIDIA cards (GTX 900 / 10-series) as well as newer ones, and can speak in your own voice.
+Local, offline text-to-speech (TTS) with voice cloning. Turn a text file into speech
+on your own computer with [Chatterbox TTS](https://github.com/resemble-ai/chatterbox),
+on older NVIDIA GPUs such as the GTX 1080 Ti, GTX 1060 and GTX 970. Nothing is sent to
+a cloud service; after the one-time download it runs without an internet connection.
 
 ## Requirements
 
-- An NVIDIA GPU with a working driver. GTX 900 and 10-series are the target; newer
-  cards work too. Without a usable GPU it falls back to the CPU, which is very slow.
+- An NVIDIA GPU with a working driver (see the list below). Without a usable GPU it
+  falls back to the CPU, which is very slow.
 - Python 3.11 (3.10 also works).
 - About 8 GB of free disk space.
+
+## Supported GPUs
+
+| Series | Cards | Status |
+|---|---|---|
+| GTX 900 (Maxwell) | GTX 950, 960, 970, 980, 980 Ti, Titan X | Supported |
+| GTX 10 (Pascal) | GTX 1050, 1050 Ti, 1060, 1070, 1070 Ti, 1080, 1080 Ti, Titan X / Xp | Supported, tested on a GTX 1080 Ti |
+| GTX 16, RTX 20, 30, 40 | all | Should work with the same PyTorch build, not tested |
+| RTX 50 | all | Not supported: these need a newer PyTorch build than setup installs |
+| AMD, Intel, Apple | all | Not supported, CPU only |
+
+Cards with 2-4 GB of memory (for example GTX 950, 960, 1050) may run out of GPU
+memory, in which case generation continues on the CPU.
 
 ## Installation
 

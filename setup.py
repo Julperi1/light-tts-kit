@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 One-time setup for local Chatterbox TTS on NVIDIA GTX 900 / 10-series cards
-(Maxwell and Pascal, e.g. GTX 970, 980 Ti, 1060, 1080 Ti). Newer NVIDIA cards work too.
+(Maxwell and Pascal, e.g. GTX 970, 980 Ti, 1060, 1080 Ti). Cards up to the RTX 40-series
+should work too; RTX 50-series needs a newer PyTorch build than this installs.
 
     python setup.py
     python setup.py --yes     (skip the confirmation question)
