@@ -1,0 +1,9 @@
+Hello! This is a quick test of the light TTS kit.
+These two lines sit next to each other, so they are read as one paragraph.
+
+One empty line above this sentence means a short pause.
+
+
+Two empty lines mean a pause that is twice as long.
+
+This last paragraph is a bit longer, to check that sentences are split into chunks properly. The quick brown fox jumps over the lazy dog, runs across the field, hops over the old stone wall, and finally disappears into the forest. Did that sound natural? If it did, everything is working!

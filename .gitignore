@@ -1,0 +1,7 @@
+.venv/
+output/
+__pycache__/
+
+# voice recordings stay local; only the guide is tracked
+voices/*
+!voices/VOICES.md
