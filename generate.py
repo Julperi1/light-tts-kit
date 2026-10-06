@@ -186,8 +186,15 @@ def main():
     if total == 0:
         sys.exit("The text file has no text in it.")
 
+    # Stay off the network: load the model from the local cache without asking
+    # Hugging Face for updates. Must be set before huggingface_hub is imported.
+    forced_offline = "HF_HUB_OFFLINE" not in os.environ
+    if forced_offline:
+        os.environ["HF_HUB_OFFLINE"] = "1"
+
     import soundfile as sf
     import torch
+    from huggingface_hub.errors import LocalEntryNotFoundError
 
     device = "cuda" if torch.cuda.is_available() and not args.cpu else "cpu"
     if device == "cpu" and not args.cpu:
@@ -203,6 +210,13 @@ def main():
         from chatterbox.tts import ChatterboxTTS as Model
     try:
         model = Model.from_pretrained(device=device)
+    except LocalEntryNotFoundError:
+        if not forced_offline:
+            raise
+        # model isn't in the cache yet: start over with downloads allowed, this once
+        print("Model not downloaded yet, downloading it (one time)...", flush=True)
+        env = {**os.environ, "HF_HUB_OFFLINE": "0"}
+        sys.exit(subprocess.run([sys.executable, *sys.argv], env=env).returncode)
     except torch.OutOfMemoryError:
         if device == "cpu":
             raise

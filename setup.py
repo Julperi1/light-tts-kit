@@ -27,6 +27,9 @@ HERE = Path(__file__).resolve().parent
 VENV = HERE / ".venv"
 PY = VENV / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 
+# Pinned so setup installs the release this kit was tested with, not whatever is newest.
+CHATTERBOX_VERSION = "0.1.7"
+
 # Tried in order; cu126 is preferred (last official Maxwell/Pascal-compatible build).
 CUDA_INDEXES = ["cu126", "cu124", "cu121", "cu118"]
 
@@ -136,7 +139,7 @@ def main():
     pip("install", "--upgrade", "pip", "setuptools<81", "wheel")
 
     step("Installing Chatterbox TTS and dependencies (this takes a while)")
-    pip("install", "chatterbox-tts", "soundfile", "numpy", "setuptools<81")
+    pip("install", f"chatterbox-tts=={CHATTERBOX_VERSION}", "soundfile", "numpy", "setuptools<81")
 
     step("Swapping PyTorch for a build that supports your GPU")
     indexes = CUDA_INDEXES
@@ -170,7 +173,8 @@ def main():
             "install",
             f"torch=={torch_v}+{idx}",
             f"torchaudio=={ta_v}+{idx}",
-            "--extra-index-url",
+            # only the PyTorch index for this step, so nothing here is resolved from PyPI
+            "--index-url",
             f"https://download.pytorch.org/whl/{idx}",
             check=False,
         )
