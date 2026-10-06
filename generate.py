@@ -4,6 +4,7 @@ Turn a text file into speech with Chatterbox TTS.
 
     python generate.py --path=test.txt
     python generate.py --path=story.txt --voice=myvoice --out=story.wav
+    python generate.py --path=tarina.txt --lang=fi
 
 Text files are looked up in the inputs/ folder (a full path works too).
 Voices are looked up in the voices/ folder, see voices/VOICES.md.
@@ -27,6 +28,15 @@ INPUTS = HERE / "inputs"
 OUTPUT = HERE / "output"
 VOICES = HERE / "voices"
 VOICE_EXTS = (".wav", ".mp3", ".flac", ".ogg", ".m4a")
+
+# Languages of Chatterbox's multilingual model. "en" uses the English-only model.
+LANGUAGES = {
+    "ar": "Arabic", "da": "Danish", "de": "German", "el": "Greek", "en": "English",
+    "es": "Spanish", "fi": "Finnish", "fr": "French", "he": "Hebrew", "hi": "Hindi",
+    "it": "Italian", "ja": "Japanese", "ko": "Korean", "ms": "Malay", "nl": "Dutch",
+    "no": "Norwegian", "pl": "Polish", "pt": "Portuguese", "ru": "Russian",
+    "sv": "Swedish", "sw": "Swahili", "tr": "Turkish", "zh": "Chinese",
+}
 
 
 def _ensure_venv():
@@ -150,6 +160,7 @@ def main():
     ap.add_argument("--path", required=True, help="text file to read (a name in inputs/, or a path)")
     ap.add_argument("--out", help="output .wav (default: output/<text file name>.wav)")
     ap.add_argument("--voice", help="voice to clone: a file name in voices/ (extension optional), or a path")
+    ap.add_argument("--lang", default="en", help="language of the text, e.g. fi, sv, de (en)")
     ap.add_argument("--pause", type=float, default=0.8, help="seconds of pause per empty line (0.8)")
     ap.add_argument("--gap", type=float, default=0.25, help="seconds between sentence chunks (0.25)")
     ap.add_argument("--exaggeration", type=float, default=0.5, help="emotion, 0.25-1.0 (0.5)")
@@ -160,6 +171,13 @@ def main():
     ap.add_argument("--turbo", action="store_true", help="use Chatterbox Turbo (supports [laugh], [sigh] tags)")
     ap.add_argument("--cpu", action="store_true", help="force CPU (slow)")
     args = ap.parse_args()
+
+    args.lang = args.lang.lower()
+    if args.lang not in LANGUAGES:
+        known = ", ".join(f"{code} ({name})" for code, name in LANGUAGES.items())
+        sys.exit(f"Unknown language: {args.lang}\nAvailable: {known}")
+    if args.turbo and args.lang != "en":
+        sys.exit("--turbo only supports English. Leave out --turbo to use --lang.")
 
     src = Path(args.path)
     # a bare name means a file in inputs/; paths relative to the kit folder work too
@@ -194,7 +212,6 @@ def main():
 
     import soundfile as sf
     import torch
-    from huggingface_hub.errors import LocalEntryNotFoundError
 
     device = "cuda" if torch.cuda.is_available() and not args.cpu else "cpu"
     if device == "cpu" and not args.cpu:
@@ -203,17 +220,20 @@ def main():
         torch.manual_seed(args.seed)
         np.random.seed(args.seed)
 
-    print(f"Loading model on {device}...", flush=True)
+    print(f"Loading model on {device} ({LANGUAGES[args.lang]})...", flush=True)
     if args.turbo:
         from chatterbox.tts_turbo import ChatterboxTurboTTS as Model
+    elif args.lang != "en":
+        from chatterbox.mtl_tts import ChatterboxMultilingualTTS as Model
     else:
         from chatterbox.tts import ChatterboxTTS as Model
     try:
         model = Model.from_pretrained(device=device)
-    except LocalEntryNotFoundError:
+    except FileNotFoundError:
         if not forced_offline:
             raise
-        # model isn't in the cache yet: start over with downloads allowed, this once
+        # model (or part of it) isn't in the cache yet: start over with downloads
+        # allowed, this once
         print("Model not downloaded yet, downloading it (one time)...", flush=True)
         env = {**os.environ, "HF_HUB_OFFLINE": "0"}
         sys.exit(subprocess.run([sys.executable, *sys.argv], env=env).returncode)
@@ -228,6 +248,7 @@ def main():
 
     wanted = {
         "audio_prompt_path": args.voice,
+        "language_id": args.lang,
         "exaggeration": args.exaggeration,
         "cfg_weight": args.cfg,
         "temperature": args.temperature,

@@ -1,6 +1,6 @@
 # light-tts-kit
 
-Local, offline text-to-speech (TTS) with voice cloning. Turn a text file into speech
+Local, offline text-to-speech (TTS) with voice cloning, in 23 languages. Turn a text file into speech
 on your own computer with [Chatterbox TTS](https://github.com/resemble-ai/chatterbox),
 on older NVIDIA GPUs such as the GTX 1080 Ti, GTX 1060 and GTX 970. Nothing is sent to
 a cloud service; after the one-time download it runs without an internet connection.
@@ -10,7 +10,7 @@ a cloud service; after the one-time download it runs without an internet connect
 - An NVIDIA GPU with a working driver (see the list below). Without a usable GPU it
   falls back to the CPU, which is very slow.
 - Python 3.11 (3.10 also works).
-- About 8 GB of free disk space.
+- About 13 GB of free disk space.
 
 ## Supported GPUs
 
@@ -120,12 +120,13 @@ real Python.
 
 Setup runs once. It lists what it is about to do and asks before doing it. It then
 creates a private environment in `.venv`, installs Chatterbox, installs the PyTorch
-build that matches your GPU, checks the GPU, and downloads the model weights (~3 GB).
+build that matches your GPU, checks the GPU, and downloads the model weights: the
+English model and the multilingual model, about 3 GB each.
 
 | Option | Effect |
 |---|---|
 | `--yes`, `-y` | Skip the confirmation question |
-| `--skip-download` | Don't download the model now (it downloads on first use) |
+| `--skip-download` | Don't download the models now (each downloads on first use) |
 | `--force` | Try with a Python version other than 3.10 / 3.11 |
 
 ## Generate speech
@@ -147,6 +148,33 @@ python generate.py --path=test.txt --voice=myvoice
 
 See [voices/VOICES.md](voices/VOICES.md) for how to record a good clip.
 
+## Languages
+
+English is the default. For another language, pass its code with `--lang`:
+
+```
+python generate.py --path=testi.txt --lang=fi
+```
+
+`inputs/testi.txt` is a Finnish sample. Supported codes:
+
+| | | | |
+|---|---|---|---|
+| `ar` Arabic | `da` Danish | `de` German | `el` Greek |
+| `en` English | `es` Spanish | `fi` Finnish | `fr` French |
+| `he` Hebrew | `hi` Hindi | `it` Italian | `ja` Japanese |
+| `ko` Korean | `ms` Malay | `nl` Dutch | `no` Norwegian |
+| `pl` Polish | `pt` Portuguese | `ru` Russian | `sv` Swedish |
+| `sw` Swahili | `tr` Turkish | `zh` Chinese | |
+
+- All languages other than English share one multilingual model, so there is nothing
+  extra to download per language.
+- A whole file is read in one language. Words from another language in the same file
+  are pronounced by the rules of the language you chose.
+- Voice cloning works in every language. A reference clip spoken in the same language
+  as the text gives the best result.
+- `--turbo` is English only.
+
 ## Writing the text
 
 - Lines next to each other are one paragraph and are read continuously.
@@ -161,6 +189,7 @@ See [inputs/README.md](inputs/README.md) for more.
 | `--path` | required | Text file: a name in `inputs/`, or a path |
 | `--out` | `output/<name>.wav` | Where to save the audio |
 | `--voice` | built-in voice | Voice to clone: a name in `voices/`, or a path |
+| `--lang` | `en` | Language of the text, see Languages |
 | `--pause` | 0.8 | Seconds of pause per empty line |
 | `--gap` | 0.25 | Seconds of silence between sentence chunks |
 | `--exaggeration` | 0.5 | Emotion, roughly 0.25 to 1.0 |

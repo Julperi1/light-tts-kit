@@ -1,0 +1,9 @@
+Hei! Tämä on light TTS kitin nopea testi.
+Nämä kaksi riviä ovat peräkkäin, joten ne luetaan yhtenä kappaleena.
+
+Yksi tyhjä rivi tämän lauseen yläpuolella tarkoittaa lyhyttä taukoa.
+
+
+Kaksi tyhjää riviä tarkoittaa kaksi kertaa pidempää taukoa.
+
+Tämä viimeinen kappale on hieman pidempi, jotta nähdään, että lauseet jaetaan osiin oikein. Nopea ruskea kettu hyppää laiskan koiran yli, juoksee pellon poikki, loikkaa vanhan kiviaidan yli ja katoaa lopulta metsään. Kuulostiko se luonnolliselta? Jos kuulosti, kaikki toimii!

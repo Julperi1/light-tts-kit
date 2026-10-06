@@ -14,9 +14,10 @@ What it does:
      supports Maxwell and Pascal cards (sm_52 / sm_61). Newer default builds (cu128+)
      won't run on them. Falls back to CUDA 11.8 if your NVIDIA driver is too old for 12.x.
   4. Checks the GPU actually works with that build
-  5. Pre-downloads the model weights so the first generation starts right away
+  5. Pre-downloads the model weights (English and the 23-language multilingual model)
+     so the first generation starts right away
 
-Use Python 3.10 or 3.11 (3.11 recommended). Needs ~8 GB free disk space.
+Use Python 3.10 or 3.11 (3.11 recommended). Needs ~13 GB free disk space.
 """
 import os
 import subprocess
@@ -29,6 +30,13 @@ PY = VENV / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 
 # Pinned so setup installs the release this kit was tested with, not whatever is newest.
 CHATTERBOX_VERSION = "0.1.7"
+
+# Weights downloaded up front: (label, chatterbox module, class). The multilingual
+# model is what generate.py --lang=fi (or any other non-English language) uses.
+MODELS = [
+    ("English", "tts", "ChatterboxTTS"),
+    ("multilingual", "mtl_tts", "ChatterboxMultilingualTTS"),
+]
 
 # Tried in order; cu126 is preferred (last official Maxwell/Pascal-compatible build).
 CUDA_INDEXES = ["cu126", "cu124", "cu121", "cu118"]
@@ -91,11 +99,11 @@ def confirm(skip_download):
         "Check that the GPU works",
     ]
     if not skip_download:
-        plan.append("Download the model weights (~3 GB)")
+        plan.append("Download the model weights: English and multilingual (~6 GB)")
     print("This setup will:\n")
     for item in plan:
         print(f"  - {item}")
-    print("\nIt needs ~8 GB of disk space and takes a while.\n")
+    print("\nIt needs ~13 GB of disk space and takes a while.\n")
     try:
         answer = input("Continue? [Y/n] ").strip().lower()
     except (EOFError, KeyboardInterrupt):
@@ -216,23 +224,26 @@ def main():
         )
 
     if not skip_download:
-        step("Downloading model weights (~3 GB, one time)")
-        code, out, err = venv_eval(
-            "from chatterbox.tts import ChatterboxTTS\n"
-            "ChatterboxTTS.from_pretrained(device='cpu')\n"
-            "print('done')"
-        )
-        if code != 0:
-            print(err[-2000:])
-            print("  Download failed; it will be retried on first run of generate.py.")
-        else:
-            print("  Model downloaded.")
+        for label, module, cls in MODELS:
+            step(f"Downloading the {label} model weights (~3 GB, one time)")
+            code, out, err = venv_eval(
+                f"from chatterbox.{module} import {cls}\n"
+                f"{cls}.from_pretrained(device='cpu')\n"
+                "print('done')"
+            )
+            if code != 0:
+                print(err[-2000:])
+                print("  Download failed; it will be retried on first run of generate.py.")
+            else:
+                print("  Model downloaded.")
 
     step("All set")
     print(
         "Generate speech with:\n\n"
         "    python generate.py --path=test.txt\n\n"
         "It reads inputs/test.txt and saves the audio to output/test.wav.\n\n"
+        "Other languages (fi, sv, de, ...):\n\n"
+        "    python generate.py --path=mytext.txt --lang=fi\n\n"
         "Clone a voice (put 10-20 s of clean speech in voices/, see voices/VOICES.md):\n\n"
         "    python generate.py --path=test.txt --voice=myvoice\n"
     )
